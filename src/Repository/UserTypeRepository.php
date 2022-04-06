@@ -2,30 +2,30 @@
 
 namespace App\Repository;
 
-use App\Entity\Shopkeeper;
+use App\Entity\UserType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method Shopkeeper|null find($id, $lockMode = null, $lockVersion = null)
- * @method Shopkeeper|null findOneBy(array $criteria, array $orderBy = null)
- * @method Shopkeeper[]    findAll()
- * @method Shopkeeper[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method UserType|null find($id, $lockMode = null, $lockVersion = null)
+ * @method UserType|null findOneBy(array $criteria, array $orderBy = null)
+ * @method UserType[]    findAll()
+ * @method UserType[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ShopkeeperRepository extends ServiceEntityRepository
+class UserTypeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Shopkeeper::class);
+        parent::__construct($registry, UserType::class);
     }
 
     /**
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function add(Shopkeeper $entity, bool $flush = true): void
+    public function add(UserType $entity, bool $flush = true): void
     {
         $this->_em->persist($entity);
         if ($flush) {
@@ -37,7 +37,7 @@ class ShopkeeperRepository extends ServiceEntityRepository
      * @throws ORMException
      * @throws OptimisticLockException
      */
-    public function remove(Shopkeeper $entity, bool $flush = true): void
+    public function remove(UserType $entity, bool $flush = true): void
     {
         $this->_em->remove($entity);
         if ($flush) {
@@ -46,15 +46,15 @@ class ShopkeeperRepository extends ServiceEntityRepository
     }
 
     // /**
-    //  * @return Shopkeeper[] Returns an array of Shopkeeper objects
+    //  * @return UserType[] Returns an array of UserType objects
     //  */
     /*
     public function findByExampleField($value)
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.exampleField = :val')
             ->setParameter('val', $value)
-            ->orderBy('s.id', 'ASC')
+            ->orderBy('u.id', 'ASC')
             ->setMaxResults(10)
             ->getQuery()
             ->getResult()
@@ -63,10 +63,10 @@ class ShopkeeperRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?Shopkeeper
+    public function findOneBySomeField($value): ?UserType
     {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.exampleField = :val')
             ->setParameter('val', $value)
             ->getQuery()
             ->getOneOrNullResult()

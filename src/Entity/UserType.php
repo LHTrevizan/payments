@@ -2,13 +2,13 @@
 
 namespace App\Entity;
 
-use App\Repository\StandardUserRepository;
+use App\Repository\UserTypeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=StandardUserRepository::class)
+ * @ORM\Entity(repositoryClass=UserTypeRepository::class)
  */
-class StandardUser
+class UserType
 {
     /**
      * @ORM\Id
@@ -18,23 +18,23 @@ class StandardUser
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=11)
+     * @ORM\Column(type="string", length=30)
      */
-    private $CPF;
+    private $name;
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getCPF(): ?string
+    public function getName(): ?string
     {
-        return $this->CPF;
+        return $this->name;
     }
 
-    public function setCPF(string $CPF): self
+    public function setName(string $name): self
     {
-        $this->CPF = $CPF;
+        $this->name = $name;
 
         return $this;
     }

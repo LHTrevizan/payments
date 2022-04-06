@@ -8,94 +8,122 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\UserRepository;
+use App\Repository\UserTypeRepository;
+use App\Entity\UserType;
 use App\Entity\User;
-
+use Swagger\Annotations as SWG;
 
 /**
- * @Route("/user", name="user_")
+ * @Route("/users", name="user_")
+ * @SWG\Tag(name="Users")
+ * @SWG\Response(response=200, description="OK")
+ * @SWG\Response(response=401, description="Erro")
  */
 class UserController extends AbstractController
 {
-  public function __construct(UserRepository $repository)
+  public function __construct(UserRepository $repository, UserTypeRepository $userTypeRepository)
   {
-      $this->repository = $repository;
+    $this->repository         = $repository;
+    $this->userTypeRepository = $userTypeRepository;
   }
 
-  /**
-   * @Route("/", name="index", methods={"GET"})
-   */
-    public function index(): Response
-    {
-      $users = $this->repository->findAll();
+  public function index(): Response
+  {
+    $users = $this->repository->findAll();
 
-      return $this->json([
-        'data' => $users
-      ]);
+    if (empty($users)) {
+      return new JsonResponse(['message' => 'not found users'], Response::HTTP_NOT_FOUND);
     }
 
-    /**
-   * @Route("/{userId}", name="show", methods={"GET"})
-   */
+    return $this->json([
+      'data' => $users
+    ]);
+  }
 
-   public function show($userId,  Request $request) {
-    $data = $request->request->all();
+  public function show($userId) {
+    $user = $this->repository->findOneById($userId);
 
-    $user = $this->repository->findOneBy(['id' => $userId]);
+    if (empty($user)) {
+      return new JsonResponse(['message' => 'not found user'], Response::HTTP_NOT_FOUND);
+    }
 
     return $this->json([
       'data' => $user
     ]);
-   }
-
-      /**
-   * @Route("/", name="create", methods={"POST"})
-   */
+  }
 
   public function create(Request $request) {
     $data = $request->request->all();
-
     $user = new User();
+    $userType = $this->userTypeRepository->findOneById($data['userType']);
+
+    $this->validateShopkeeper($userType, $request);
+    $this->validateStandard($userType,  $request);
+
+    try {
+      if ($userType->getName() === 'normal') {
+        $user->setCPF($data['CPF']);
+      } else {
+        $user->setCNPJ($data['CNPJ']);
+      }
+    } catch(\Exception $e) {
+      return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+    }
+
     $user->setName($data['name']);
-    $user->setUserType($data['userType']);
+    $user->setEmail($data['email']);
+    $user->setPassword($data['password']);
+    $user->setBankBalance($data['bankBalance']);
+    $user->setUserType($userType);
+    $user->setUpdatedAt(new \DateTime());
+    $user->setCreatedAt(new \DateTime());
 
     $doctrine = $this->getDoctrine()->getManager();
-
     $doctrine->persist($user);
     $doctrine->flush();
-    return $this->json([
-      'data' => 'Usuario criado com suceso!'
-    ]);
-  }
 
-  /**
-   * @Route("/{userId}", name="update", methods={"PUT", "PATH"})
-   */
+    return new JsonResponse(['message' => 'Usuario criado com sucesso!'], Response::HTTP_CREATED);
+  }
 
   public function update($userId, Request $request) {
     $data = $request->request->all();
+    $user = $this->repository->findOneById($userId);
+    $userType = $this->userTypeRepository->findOneById($data['userType']);
 
-    $user = $this->repository->findOneBy(['id' =>$userId]);
+    $this->validateShopkeeper($userType, $request);
+    $this->validateStandard($userType,  $request);
+
+    try {
+      if ($userType->getName() === 'normal') {
+        $user->setCPF($data['CPF']);
+      } else {
+        $user->setCNPJ($data['CNPJ']);
+      }
+    } catch(\Exception $e) {
+        return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+    }
+
     $user->setName($data['name']);
-    $user->setUserType($data['userType']);
+    $user->setEmail($data['email']);
+    $user->setPassword($data['password']);
+    $user->setBankBalance($data['bankBalance']);
+    $user->setUserType($userType);
+    $user->setUpdatedAt(new \DateTime());
+    $user->setCreatedAt(new \DateTime());
 
     $doctrine = $this->getDoctrine()->getManager();
 
     $doctrine->flush();
-    return $this->json([
-      'data' => 'Usuario atualizado com sucesso!'
-    ]);
+    return new JsonResponse(['message' => 'Usuario atualizado com sucesso!'], Response::HTTP_OK);
   }
 
-  /**
-   * @Route("/{userId}", name="delete", methods={"DELETE"})
-   */
-
-  public function delete($userId, Request $request) {
-    $data = $request->request->all();
-
+  public function delete($userId) {
     $doctrine = $this->getDoctrine()->getManager();
+    $user = $this->repository->findOneById($userId);
 
-    $user = $this->repository->findOneBy(['id' => $userId]);
+    if (empty($user)) {
+      return new JsonResponse(['message' => 'not found user'], Response::HTTP_NOT_FOUND);
+    }
 
     $doctrine->remove($user);
     $doctrine->flush();
@@ -103,5 +131,35 @@ class UserController extends AbstractController
     return $this->json([
       'data' => 'Usuario deletado com sucesso!'
     ]);
+  }
+
+  public function validateStandard(UserType $userType, Request $request)
+  {
+    $data = $request->request->all();
+
+    if ($userType->getName() === 'normal') {
+      if (empty($data['CPF'])) {
+        throw new Exception("not found CPF", 404);
+      }
+
+      if(!empty($this->repository->findOneByCPF($data['CPF']))) {
+        throw new Exception("CPF already exist", 409);
+      }
+    }
+  }
+
+  public function validateShopkeeper(UserType $userType, Request $request)
+  {
+    $data = $request->request->all();
+
+    if ($userType->getName() === 'lojista') {
+      if (empty($data['CNPJ'])) {
+        throw new Exception("not found CNPJ", 404);
+      }
+
+      if(!empty($this->repository->findBy(['CNPJ' => $data['CNPJ']]))) {
+        throw new Exception("CNPJ already exist", 409);
+      }
+    }
   }
 }

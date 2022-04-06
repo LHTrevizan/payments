@@ -1,3 +1,38 @@
-#index:
-#    path: /
-#    controller: App\Controller\DefaultController::index
+#Users Routes
+index:
+   path: /users
+   methods: [GET]
+   defaults: { _controller: 'App\Controller\UserController::index'}
+foundByOne:
+   path: /users/{userId}
+   methods: [GET]
+   defaults: { _controller: 'App\Controller\UserController::show'}
+create:
+   path: /users
+   methods: [POST]
+   defaults: { _controller: 'App\Controller\UserController::create'}
+update:
+   path: /users{userId}
+   methods: [PUT]
+   defaults: { _controller: 'App\Controller\UserController::update'}
+delete:
+   path: /users{userId}
+   methods: [DELETE]
+   defaults: { _controller: 'App\Controller\UserController::delete'}
+#Transacations Routes
+indexTransactions:
+   path: /transactions
+   methods: [GET]
+   defaults: { _controller: 'App\Controller\TransactionsController::index'}
+foundByOneTransactions:
+   path: /transactions/{transactionId}
+   methods: [GET]
+   defaults: { _controller: 'App\Controller\TransactionsController::show'}
+createTransactions:
+   path: /transactions
+   methods: [POST]
+   defaults: { _controller: 'App\Controller\TransactionsController::createTransaction'}
+Refound:
+   path: /refound/{transactionId}
+   methods: [POST]
+   defaults: { _controller: 'App\Controller\TransactionsController::createRefound'}
