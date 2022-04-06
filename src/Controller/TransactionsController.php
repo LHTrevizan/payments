@@ -59,9 +59,6 @@ class TransactionsController extends AbstractController
   }
 
   public function createTransaction(Request $request) {
-    if(empty($this->transactionsModel->transaction($request->request->all()))) {
-      return new JsonResponse(['error' => "Verify your bank balance and remember you cant be a shopkeeper"], Response::HTTP_CONFLICT );
-    }
     return new JsonResponse($this->transactionsModel->transaction($request->request->all()));
   }
 

@@ -3,26 +3,22 @@
 namespace App\Model;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Doctrine\ORM\EntityManagerInterface;
-
 use App\Repository\TransactionsRepository;
 use App\Repository\UserRepository;
 use App\Entity\Transactions;
 use App\Entity\User;
 use App\Repository\UserTypeRepository;
-use Guzzle\Http\Client;
 use App\Service\Mocks;
-
 
 Class TransactionsModel {
 
-  public function __construct(TransactionsRepository $repository, UserRepository $userRepository, UserTypeRepository $userTypeRepository, EntityManagerInterface $em
-  )
+  public function __construct(TransactionsRepository $repository, UserRepository $userRepository,
+    UserTypeRepository $userTypeRepository, EntityManagerInterface $em)
   {
     $this->repository         = $repository;
     $this->userRepository     = $userRepository;
     $this->userTypeRepository = $userTypeRepository;
-    $this->em                = $em;
-
+    $this->em                 = $em;
   }
 
   public function findAllTransaction() {
@@ -35,6 +31,7 @@ Class TransactionsModel {
 
   public function transaction(array $data, string $transactionType = 'payment')
   {
+
     $transaction = new Transactions();
 
     $payee = $this->userRepository->findOneById($data['payee']);
@@ -52,7 +49,6 @@ Class TransactionsModel {
     $transaction->setPayer($payer);
     $transaction->setPayee($payee);
     $transaction->setTransactionType($transactionType);
-
     $this->updateBankBalance($payee, $payer, $data['value']);
 
     $this->em->persist($transaction);
@@ -105,6 +101,5 @@ Class TransactionsModel {
   {
     $notificationMock = new Mocks();
     return $notificationMock->notifyUser($payee->getId());
-
   }
 }

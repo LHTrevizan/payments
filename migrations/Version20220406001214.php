@@ -26,6 +26,8 @@ final class Version20220406001214 extends AbstractMigration
         $this->addSql('ALTER TABLE transactions ADD CONSTRAINT FK_EAA81A4CC17AD9A9 FOREIGN KEY (payer_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE transactions ADD CONSTRAINT FK_EAA81A4CCB4B68F FOREIGN KEY (payee_id) REFERENCES user (id)');
         $this->addSql('ALTER TABLE user ADD CONSTRAINT FK_8D93D6499D419299 FOREIGN KEY (user_type_id) REFERENCES user_type (id)');
+        $this->addSQl("INSERT INTO user_type (`name`) VALUES ('Normal')");
+        $this->addSQl("INSERT INTO user_type (`name`) VALUES ('Lojista')");
     }
 
     public function down(Schema $schema): void

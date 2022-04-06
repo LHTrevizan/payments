@@ -61,7 +61,7 @@ class UserController extends AbstractController
     $this->validateStandard($userType,  $request);
 
     try {
-      if ($userType->getName() === 'normal') {
+      if ($userType->getName() === 'Normal') {
         $user->setCPF($data['CPF']);
       } else {
         $user->setCNPJ($data['CNPJ']);
@@ -94,7 +94,7 @@ class UserController extends AbstractController
     $this->validateStandard($userType,  $request);
 
     try {
-      if ($userType->getName() === 'normal') {
+      if ($userType->getName() === 'Normal') {
         $user->setCPF($data['CPF']);
       } else {
         $user->setCNPJ($data['CNPJ']);
@@ -137,12 +137,12 @@ class UserController extends AbstractController
   {
     $data = $request->request->all();
 
-    if ($userType->getName() === 'normal') {
+    if ($userType->getName() === 'Normal') {
       if (empty($data['CPF'])) {
         throw new Exception("not found CPF", 404);
       }
 
-      if(!empty($this->repository->findOneByCPF($data['CPF']))) {
+      if(!empty($this->repository->findBy(['CPF' => $data['CPF']]))) {
         throw new Exception("CPF already exist", 409);
       }
     }
@@ -152,7 +152,7 @@ class UserController extends AbstractController
   {
     $data = $request->request->all();
 
-    if ($userType->getName() === 'lojista') {
+    if ($userType->getName() === 'Lojista') {
       if (empty($data['CNPJ'])) {
         throw new Exception("not found CNPJ", 404);
       }

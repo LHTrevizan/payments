@@ -1,5 +1,37 @@
 version: '3.7'
 services:
+  apihttpserver:
+    container_name: "api-http-server"
+    image: nginx:1.19
+    restart: always
+    ports:
+      - 3000:80
+    volumes:
+      - "./container_config/nginx/nginx.conf:/etc/nginx/nginx.conf:delegated"
+      - "./container_config/nginx/api-conf.conf:/etc/nginx/conf.d/api-conf.conf:delegated"
+      - ".:/var/www/app"
+    depends_on:
+      - apiapp
+    networks:
+        api-network:
+            ipv4_address: 172.10.1.10
+
+  apiapp:
+    container_name: "api_app"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+       - "./container_config/php_fpm/php-fpm.conf:/usr/local/etc/php-fpm.d/www.conf:delegated"
+       - ".:/var/www/app"
+       - "/var/www/app/var"
+       - "/var/www/app/vendor"
+    depends_on:
+      - mysql
+    networks:
+      - api-network
+
   mysql:
     container_name: "apiapp_mysql"
     image: mysql:5.7
@@ -7,13 +39,23 @@ services:
     volumes:
       - ./container_config/mysql/migrations/:/docker-entrypoint-initdb.d:delegated
       - "sql_vol:/var/lib/mysql"
+    networks:
+        api-network:
+            ipv4_address: 172.10.1.12
     environment:
-        MYSQL_DATABASE: apiservice
-        MYSQL_USER: root
+        MYSQL_DATABASE: payments
         MYSQL_PASSWORD: root
         MYSQL_ROOT_PASSWORD: root
         MYSQL_ROOT_HOST: '%'
         TZ: 'America/Sao_Paulo'
+
+networks:
+    api-network:
+        driver: "bridge"
+        ipam:
+            config:
+                - subnet: "172.10.1.0/24"
+
 volumes:
     sql_vol:
         driver: local

@@ -1,0 +1,1 @@
+Put your SQLs files in this directory to execute them when the mysql container is created for the first time.
