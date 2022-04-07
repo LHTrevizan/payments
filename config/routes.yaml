@@ -16,14 +16,6 @@ create:
    path: /users
    methods: [POST]
    defaults: { _controller: 'App\Controller\UserController::create'}
-update:
-   path: /users{userId}
-   methods: [PUT]
-   defaults: { _controller: 'App\Controller\UserController::update'}
-delete:
-   path: /users{userId}
-   methods: [DELETE]
-   defaults: { _controller: 'App\Controller\UserController::delete'}
 #Transacations Routes
 indexTransactions:
    path: /transactions

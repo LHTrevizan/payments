@@ -7,11 +7,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\UserRepository;
-use App\Repository\UserTypeRepository;
-use App\Entity\UserType;
-use App\Entity\User;
 use Swagger\Annotations as SWG;
+use App\Model\UserModel;
 
 /**
  * @Route("/users", name="user_")
@@ -21,145 +18,37 @@ use Swagger\Annotations as SWG;
  */
 class UserController extends AbstractController
 {
-  public function __construct(UserRepository $repository, UserTypeRepository $userTypeRepository)
-  {
-    $this->repository         = $repository;
-    $this->userTypeRepository = $userTypeRepository;
-  }
-
-  public function index(): Response
-  {
-    $users = $this->repository->findAll();
-
-    if (empty($users)) {
-      return new JsonResponse(['message' => 'not found users'], Response::HTTP_NOT_FOUND);
+    public function __construct(UserModel $userModel)
+    {
+        $this->userModel = $userModel;
     }
 
-    return $this->json([
-      'data' => $users
-    ]);
-  }
+    public function index(): Response
+    {
+        $users = $this->userModel->findAllUsers();
 
-  public function show($userId) {
-    $user = $this->repository->findOneById($userId);
+        if (empty($users)) {
+            return new JsonResponse(['message' => 'not found users'], Response::HTTP_NOT_FOUND);
+        }
 
-    if (empty($user)) {
-      return new JsonResponse(['message' => 'not found user'], Response::HTTP_NOT_FOUND);
+        return $this->json([
+        'data' => $users
+        ]);
     }
 
-    return $this->json([
-      'data' => $user
-    ]);
-  }
+    public function show($userId) {
+        $user = $this->userModel->findUserById($userId);
 
-  public function create(Request $request) {
-    $data = $request->request->all();
-    $user = new User();
-    $userType = $this->userTypeRepository->findOneById($data['userType']);
+        if (empty($user)) {
+            return new JsonResponse(['message' => 'not found user'], Response::HTTP_NOT_FOUND);
+        }
 
-    $this->validateShopkeeper($userType, $request);
-    $this->validateStandard($userType,  $request);
-
-    try {
-      if ($userType->getName() === 'Normal') {
-        $user->setCPF($data['CPF']);
-      } else {
-        $user->setCNPJ($data['CNPJ']);
-      }
-    } catch(\Exception $e) {
-      return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+        return $this->json([
+        'data' => $user
+        ]);
     }
 
-    $user->setName($data['name']);
-    $user->setEmail($data['email']);
-    $user->setPassword($data['password']);
-    $user->setBankBalance($data['bankBalance']);
-    $user->setUserType($userType);
-    $user->setUpdatedAt(new \DateTime());
-    $user->setCreatedAt(new \DateTime());
-
-    $doctrine = $this->getDoctrine()->getManager();
-    $doctrine->persist($user);
-    $doctrine->flush();
-
-    return new JsonResponse(['message' => 'Usuario criado com sucesso!'], Response::HTTP_CREATED);
-  }
-
-  public function update($userId, Request $request) {
-    $data = $request->request->all();
-    $user = $this->repository->findOneById($userId);
-    $userType = $this->userTypeRepository->findOneById($data['userType']);
-
-    $this->validateShopkeeper($userType, $request);
-    $this->validateStandard($userType,  $request);
-
-    try {
-      if ($userType->getName() === 'Normal') {
-        $user->setCPF($data['CPF']);
-      } else {
-        $user->setCNPJ($data['CNPJ']);
-      }
-    } catch(\Exception $e) {
-        return new JsonResponse(['message' => $e->getMessage()], Response::HTTP_NOT_FOUND);
+    public function create(Request $request) {
+        return new JsonResponse($this->userModel->createUser($request->request->all()));
     }
-
-    $user->setName($data['name']);
-    $user->setEmail($data['email']);
-    $user->setPassword($data['password']);
-    $user->setBankBalance($data['bankBalance']);
-    $user->setUserType($userType);
-    $user->setUpdatedAt(new \DateTime());
-    $user->setCreatedAt(new \DateTime());
-
-    $doctrine = $this->getDoctrine()->getManager();
-
-    $doctrine->flush();
-    return new JsonResponse(['message' => 'Usuario atualizado com sucesso!'], Response::HTTP_OK);
-  }
-
-  public function delete($userId) {
-    $doctrine = $this->getDoctrine()->getManager();
-    $user = $this->repository->findOneById($userId);
-
-    if (empty($user)) {
-      return new JsonResponse(['message' => 'not found user'], Response::HTTP_NOT_FOUND);
-    }
-
-    $doctrine->remove($user);
-    $doctrine->flush();
-
-    return $this->json([
-      'data' => 'Usuario deletado com sucesso!'
-    ]);
-  }
-
-  public function validateStandard(UserType $userType, Request $request)
-  {
-    $data = $request->request->all();
-
-    if ($userType->getName() === 'Normal') {
-      if (empty($data['CPF'])) {
-        throw new Exception("not found CPF", 404);
-      }
-
-      if(!empty($this->repository->findBy(['CPF' => $data['CPF']]))) {
-        throw new Exception("CPF already exist", 409);
-      }
-    }
-  }
-
-  public function validateShopkeeper(UserType $userType, Request $request)
-  {
-    $data = $request->request->all();
-
-    if ($userType->getName() === 'Lojista') {
-      if (empty($data['CNPJ'])) {
-        throw new Exception("not found CNPJ", 404);
-      }
-
-      if(!empty($this->repository->findBy(['CNPJ' => $data['CNPJ']]))) {
-        throw new Exception("CNPJ already exist", 409);
-      }
-    }
-  }
 }

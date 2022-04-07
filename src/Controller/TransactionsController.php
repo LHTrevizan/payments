@@ -7,14 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\TransactionsRepository;
-use App\Repository\UserRepository;
-use App\Entity\ Transactions;
-use App\Entity\User;
-use App\Repository\UserTypeRepository;
-use App\Service\Mocks;
 use App\Model\TransactionsModel;
-
 use Guzzle\Http\Client;
 use Swagger\Annotations as SWG;
 
@@ -27,44 +20,43 @@ use Swagger\Annotations as SWG;
 
 class TransactionsController extends AbstractController
 {
-  public function __construct(TransactionsModel $transactionsModel)
-  {
-    $this->transactionsModel = $transactionsModel;
-  }
-
-  public function index(): Response
-  {
-    $transactions = $this->transactionsModel->findAllTransaction();
-
-    if (empty($transactions)) {
-      return new JsonResponse(['message' => 'not found transactions'], Response::HTTP_NOT_FOUND);
+    public function __construct(TransactionsModel $transactionsModel)
+    {
+        $this->transactionsModel = $transactionsModel;
     }
 
-    return $this->json([
-      'data' => $transactions
-    ]);
-  }
+    public function index(): Response
+    {
+        $transactions = $this->transactionsModel->findAllTransaction();
 
-  public function show($transactionId) {
+        if (empty($transactions)) {
+            return new JsonResponse(['message' => 'not found transactions'], Response::HTTP_NOT_FOUND);
+        }
 
-    $transaction = $this->transactionsModel->findTransactionById($transactionId);
-
-    if (empty($transaction)) {
-      return new JsonResponse(['message' => 'not found transaction'], Response::HTTP_NOT_FOUND);
+        return $this->json([
+        'data' => $transactions
+        ]);
     }
 
-    return $this->json([
-      'data' => $transaction
-    ]);
-  }
+    public function show($transactionId) {
 
-  public function createTransaction(Request $request) {
-    return new JsonResponse($this->transactionsModel->transaction($request->request->all()));
-  }
+        $transaction = $this->transactionsModel->findTransactionById($transactionId);
 
-  public function createRefound(Int $transactionId)
-  {
-    return new JsonResponse($this->transactionsModel->refound($transactionId));
-  }
+        if (empty($transaction)) {
+            return new JsonResponse(['message' => 'not found transaction'], Response::HTTP_NOT_FOUND);
+        }
 
+        return $this->json([
+        'data' => $transaction
+        ]);
+    }
+
+    public function createTransaction(Request $request) {
+        return new JsonResponse($this->transactionsModel->transaction($request->request->all()));
+    }
+
+    public function createRefound(Int $transactionId)
+    {
+        return new JsonResponse($this->transactionsModel->refound($transactionId));
+    }
 }
